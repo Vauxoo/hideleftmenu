@@ -28,7 +28,7 @@ _logger = logging.getLogger(__name__)
 try:
     from googlemaps import GoogleMaps
 except:
-    _logger.error('Install googlemaps "sudo pip install googlemaps" to use web_gmaps module.')
+    _logger.info('Install googlemaps "sudo pip install googlemaps" to use web_gmaps module.')
 
 class partner_geo_map(osv.osv):
     """
@@ -36,13 +36,18 @@ class partner_geo_map(osv.osv):
     """
     def _geo_loc(self, cr, uid, ids, field_name, arg, context):
         result = {}
-        gmaps = GoogleMaps("http://maps.googleapis.com/maps/api/js?key=AIzaSyBwNE-vFDyyOb62ODaRiqpiL2kz8wR0aTc")
-        for partner in self.browse(cr,uid,ids):
-            address = partner.street
-            lat, lng = gmaps.address_to_latlng(address) 
-            latlng = str(lat) +","+ str(lng)
-            result[partner.id] = str(latlng)
+        try:
+            gmaps = GoogleMaps("http://maps.googleapis.com/maps/api/js?key=AIzaSyBwNE-vFDyyOb62ODaRiqpiL2kz8wR0aTc")
+            for partner in self.browse(cr,uid,ids):
+                address = partner.street
+                lat, lng = gmaps.address_to_latlng(address) 
+                latlng = str(lat) +","+ str(lng)
+                result[partner.id] = str(latlng)
+        except BaseException, e:
+            _logger.warning('Install googlemaps "sudo pip install googlemaps" to use web_gmaps module.')
+            result[partner.id] = False
         return result
+
     _inherit = 'res.partner'
     _columns = {
     'geo_all': fields.function(_geo_loc, 
